@@ -25,12 +25,13 @@ SW_Infared::~SW_Infared()
 void SW_Infared::begin()
 {
     Serial.println(">> IR\t\t:enabled");
-    // if (ENABLE_SERIAL_COMMUNICATION) Serial.printf("\t\t: real tick set to: Tx: %fns | Rx: %fns\n\n", this->realTickTx, this->realTickRx);
+    if (ENABLE_SERIAL_COMMUNICATION)
+        Serial.printf("\t\t: real tick set to: Tx: %fns | Rx: %fns\n\n", this->realTickTx, this->realTickRx);
 }
 
 void SW_Infared::setupTx()
 {
-    if ((this->rmt_send = rmtInit(PIN_IR_TX, true, RMT_MEM_64)) == NULL)
+    if ((this->rmt_send = rmtInit(PIN_IR_TX, RMT_TX_MODE, RMT_MEM_64)) == NULL)
     {
         if (ENABLE_SERIAL_COMMUNICATION)
             Serial.println(">> error: Infared (Tx module failed)\n");
@@ -47,17 +48,23 @@ void SW_Infared::setupTx()
 }
 void SW_Infared::setupRx()
 {
-    for (int i = 0; i < IR_SENSOR_COUNT; i++)
-    {
-        if ((this->rmt_rx[i] = rmtInit(this->pin_rmtRx[i], false, RMT_MEM_64)) == NULL)
-        {
-            if (ENABLE_SERIAL_COMMUNICATION)
-                Serial.println(">> error: Infared (Rx module failed)\n");
-        }
+    // for (int i = 0; i < IR_SENSOR_COUNT; i++)
+    // {
+    //     if ((this->rmt_rx[i] = rmtInit(this->pin_rmtRx[i], false, RMT_MEM_64)) == NULL)
+    //     {
+    //         if (ENABLE_SERIAL_COMMUNICATION)
+    //             Serial.println(">> error: Infared (Rx module failed)\n");
+    //     }
 
-        this->realTickRx = rmtSetTick(this->rmt_rx[i], 5000); // x10 uS
+    //     this->realTickRx = rmtSetTick(this->rmt_rx[i], 5000); // x10 uS
+    // }
+    if ((this->rmt_rx[0] = rmtInit(this->pin_rmtRx[0], RMT_RX_MODE, RMT_MEM_64)) == NULL)
+    {
+        if (ENABLE_SERIAL_COMMUNICATION)
+            Serial.println(">> error: Infared (Rx module failed)\n");
     }
 
+    this->realTickRx = rmtSetTick(this->rmt_rx[0], 5000); // x10 uS
     // rmtRead(this->rmt_rx[0], this->irReceive_0);
     // rmtRead(this->rmt_rx[1], this->irReceive_1);
     // rmtRead(this->rmt_rx[2], this->irReceive_2);
@@ -66,13 +73,13 @@ void SW_Infared::setupRx()
 
 unsigned int SW_Infared::parse(rmt_data_t *items, size_t len, uint8_t rId)
 {
-    if (len == IR_BIT_LEN + 2)
+    if (len > 1) // (len == IR_BIT_LEN + 2)
     {
         rmt_data_t *it = &items[0];
         unsigned int value = 0;
 
         if (IR_DEBUG)
-            Serial.print("Receive\t< "); // LSB First
+            Serial.printf("\nReceive\t< (len=%d) ", len); // LSB First
 
         // trim the first and last framing bits
         for (size_t i = 1; i < (len - 1); i++)
@@ -81,19 +88,19 @@ unsigned int SW_Infared::parse(rmt_data_t *items, size_t len, uint8_t rId)
 
             if ((it->duration0 < 200) && (it->duration1 < 200) && (it->duration0 > 20) && (it->duration1 > 20))
             {
-                if (IR_DEBUG)
-                    Serial.printf("%d", (it->duration0 > it->duration1));
+                // if (IR_DEBUG)
+                //     Serial.printf("%d", (it->duration0 > it->duration1));
                 bitWrite(value, i - 1, (it->duration0 > it->duration1));
             }
             else
             {
-                if (IR_DEBUG)
-                    Serial.printf("(%d,%d)", it->duration0, it->duration1);
+                // if (IR_DEBUG)
+                //     Serial.printf("(%d,%d)", it->duration0, it->duration1);
             }
         }
 
         if (IR_DEBUG)
-            Serial.printf("      << %ud (%d)\n", value, rId);
+            Serial.printf("      << %d (from %d)\n", value, rId);
         return value;
     }
     else
@@ -106,6 +113,18 @@ void SW_Infared::sendWaveform(unsigned int value)
 {
     this->sendWaveform(value, IR_BIT_LEN); // default: 32bits
 }
+
+void SW_Infared::sendTestSignal(unsigned int len)
+{
+    // Sends a starting bit of 10 ticks
+    this->sendBit(PULSE_FRAME_TICKS, PULSE_FRAME_TICKS);
+
+    for (uint8_t i = 0; i < len; i++)
+    {
+        this->sendBit(PULSE_HIGH_TICKS, PULSE_LOW_TICKS);
+    }
+}
+
 void SW_Infared::sendWaveform(unsigned int value, int len)
 {
     uint8_t bitI;
@@ -133,7 +152,7 @@ void SW_Infared::sendWaveform(unsigned int value, int len)
     // Sends a ending bit of 10 ticks
     this->sendBit(PULSE_FRAME_TICKS, PULSE_FRAME_TICKS);
     if (IR_DEBUG)
-        Serial.printf("      << %ud\n", value);
+        Serial.printf(" S >> %u\n", value);
 }
 void SW_Infared::sendBit(short pulseHigh, short pulseLow)
 {

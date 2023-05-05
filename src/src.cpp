@@ -8,6 +8,8 @@
 // https://docs.platformio.org/en/latest/plus/unit-testing.html
 #ifndef UNIT_TEST
 
+int i;
+
 void setup()
 {
     // put your setup code here, to run once:
@@ -17,18 +19,18 @@ void setup()
     Serial.println("PlatformIO ESP32 Boilerplate started...");
 
     pinMode(PIN_LED_INBUILT, OUTPUT);
-
     beginInfared();
+
+    i = 100;
 }
 
 void loop()
 {
-    // put your main code here, to run repeatedly:
-    send(1024);
     digitalWrite(PIN_LED_INBUILT, HIGH);
-    delay(1000);
+    send(i++);
+    delay(500);
     digitalWrite(PIN_LED_INBUILT, LOW);
-    delay(1000);
+    delay(4500);
 }
 
 #endif

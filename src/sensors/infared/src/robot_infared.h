@@ -58,6 +58,7 @@ public:
     unsigned int parse(rmt_data_t *items, size_t len, uint8_t rId);
     rmt_obj_t *rmt_rx[IR_SENSOR_COUNT];
 
+    void sendTestSignal(unsigned int len);
     void sendWaveform(unsigned int value);
     void sendWaveform(unsigned int value, int len);
     void sendBit(short pulseHigh, short pulseLow);
