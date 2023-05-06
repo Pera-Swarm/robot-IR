@@ -25,7 +25,8 @@ SW_Infared::~SW_Infared()
 void SW_Infared::begin()
 {
     Serial.println(">> IR\t\t:enabled");
-    // if (ENABLE_SERIAL_COMMUNICATION) Serial.printf("\t\t: real tick set to: Tx: %fns | Rx: %fns\n\n", this->realTickTx, this->realTickRx);
+    if (ENABLE_SERIAL_COMMUNICATION)
+        Serial.printf("\t\t: real tick set to: Tx: %fns | Rx: %fns\n\n", this->realTickTx, this->realTickRx);
 }
 
 void SW_Infared::setupTx()
@@ -49,12 +50,11 @@ void SW_Infared::setupRx()
 {
     for (int i = 0; i < IR_SENSOR_COUNT; i++)
     {
-        if ((this->rmt_rx[i] = rmtInit(this->pin_rmtRx[i], false, RMT_MEM_64)) == NULL)
+        if ((this->rmt_rx[i] = rmtInit(this->pin_rmtRx[i], RMT_RX_MODE, RMT_MEM_64)) == NULL)
         {
             if (ENABLE_SERIAL_COMMUNICATION)
                 Serial.println(">> error: Infared (Rx module failed)\n");
         }
-
         this->realTickRx = rmtSetTick(this->rmt_rx[i], 5000); // x10 uS
     }
 
@@ -102,6 +102,13 @@ unsigned int SW_Infared::parse(rmt_data_t *items, size_t len, uint8_t rId)
     }
 }
 
+void SW_Infared::sendTestSignal(unsigned int len)
+{
+    for (uint8_t i = 0; i < len; i++)
+    {
+        this->sendBit(PULSE_HIGH_TICKS, PULSE_LOW_TICKS);
+    }
+}
 void SW_Infared::sendWaveform(unsigned int value)
 {
     this->sendWaveform(value, IR_BIT_LEN); // default: 32bits
