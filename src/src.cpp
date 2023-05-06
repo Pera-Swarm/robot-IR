@@ -19,16 +19,14 @@ void setup()
     pinMode(PIN_LED_INBUILT, OUTPUT);
 
     beginInfared();
+    delay(2000);
 }
 
 void loop()
 {
     // put your main code here, to run repeatedly:
-    send(1024);
-    digitalWrite(PIN_LED_INBUILT, HIGH);
-    delay(1000);
-    digitalWrite(PIN_LED_INBUILT, LOW);
-    delay(1000);
+    sendTestSignal(3);
+    delay(6000);
 }
 
 #endif
