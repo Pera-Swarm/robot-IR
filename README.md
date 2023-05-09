@@ -7,6 +7,7 @@
 - Download VS Code (https://code.visualstudio.com/)
 - Install PlatformIO Extension (https://platformio.org/install/ide?install=vscode)
 - Clone this repository and open it using VSCode
+- Copy the file `src\config\config.sample.h` and rename as `src\config\config.h`. (No configurations need so far)
 - Try to build the project, using PlatformIO Build command 
   - During the first time of build, the necessary softwares and tools will be downloaded automatically 
   

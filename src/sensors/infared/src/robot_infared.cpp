@@ -103,21 +103,24 @@ void SW_Infared::setupRx()
  */
 int SW_Infared::parse(rmt_data_t *items, size_t len, uint8_t rId)
 {
+    // To avoid memory issues
+    delay(100);
+
     if (len > (IR_BIT_LEN + 2) * 2)
         return -1; // Something went wrong, too much readings
-
-    if (IR_DEBUG)
-        Serial.print("<< Received\n");
 
     rmt_data_t *it = &items[0];
     unsigned int value = 0;
 
+    if (IR_DEBUG)
+        Serial.print("Receive\t> "); // LSB First
+
     // Trim the first and last framing bits, and iterate over the rest
-    for (size_t i = 1; i < (len - 1); i++)
+    for (size_t i = 0; i < (len - 1); i++)
     {
         it = &items[i];
-        if (IR_DEBUG)
-            Serial.printf("%0d*\t (%d, %d), (%d, %d)\n", i, it->level0, it->duration0, it->level1, it->duration1);
+        // if (IR_DEBUG)
+        //     Serial.printf("%0d*\t (%d, %d), (%d, %d)\n", i, it->level0, it->duration0, it->level1, it->duration1);
 
         if ((it->duration0 < RX_MAX_THRESHOLD) && (it->duration1 < RX_MAX_THRESHOLD) && (it->duration0 > RX_MIN_THRESHOLD) && (it->duration1 > RX_MIN_THRESHOLD))
         {
@@ -132,7 +135,7 @@ int SW_Infared::parse(rmt_data_t *items, size_t len, uint8_t rId)
     }
 
     if (IR_DEBUG)
-        Serial.printf("Received << \t %d (%d)\n", value, rId);
+        Serial.printf("(%d -> S%0d)\n", value, rId);
 
     if (len == IR_BIT_LEN + 2)
         // Received value is in correct format
@@ -210,7 +213,7 @@ void SW_Infared::sendWaveform(unsigned int value, int len)
     // Send the end framing bit
     this->sendBit(PULSE_FRAME_TICKS, PULSE_FRAME_TICKS);
     if (IR_DEBUG)
-        Serial.printf("      << %ud\n", value);
+        Serial.printf(" ( %d )\n", value);
 }
 
 /**
@@ -221,6 +224,7 @@ void SW_Infared::sendWaveform(unsigned int value, int len)
  */
 void SW_Infared::sendBit(short pulseHigh, short pulseLow)
 {
+    // TODO: Remove this and generate the waveform using rmt_data_t at once and transmit the signal at once
     rmtWrite(rmt_send, dataTx, pulseHigh);
     delayMicroseconds(26 * (pulseHigh + pulseLow));
 }

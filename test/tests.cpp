@@ -1,6 +1,9 @@
 #include "tests.h"
 
-void setup(){
+// TODO: Write unit tests for the library (software level) functionalities
+
+void setup()
+{
     Serial.begin(115200);
     Serial.println("Test begin");
 
@@ -14,6 +17,6 @@ void setup(){
     UNITY_END();
 }
 
-void loop(){
-
+void loop()
+{
 }

@@ -8,6 +8,8 @@
 // https://docs.platformio.org/en/latest/plus/unit-testing.html
 #ifndef UNIT_TEST
 
+int i = 100;
+
 void setup()
 {
     // put your setup code here, to run once:
@@ -18,18 +20,17 @@ void setup()
 
     pinMode(PIN_LED_INBUILT, OUTPUT);
 
+    // Enable the IR Communication module
     beginInfared();
-    delay(2000);
 }
-
-int i = 100;
 
 void loop()
 {
     // put your main code here, to run repeatedly:
-    // sendTestSignal(5);
+
+    // Send a value at every 5 seconds
     send(i++);
-    delay(6000);
+    delay(5000);
 }
 
 #endif
