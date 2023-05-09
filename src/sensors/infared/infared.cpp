@@ -7,6 +7,18 @@ extern "C" void irReceive_0(uint32_t *data, size_t len)
 {
     parseRmtData((rmt_data_t *)data, len, 0);
 }
+extern "C" void irReceive_1(uint32_t *data, size_t len)
+{
+    parseRmtData((rmt_data_t *)data, len, 1);
+}
+extern "C" void irReceive_2(uint32_t *data, size_t len)
+{
+    parseRmtData((rmt_data_t *)data, len, 2);
+}
+extern "C" void irReceive_3(uint32_t *data, size_t len)
+{
+    parseRmtData((rmt_data_t *)data, len, 3);
+}
 
 void beginInfared()
 {
@@ -16,30 +28,15 @@ void beginInfared()
 
 void parseRmtData(rmt_data_t *items, size_t len, uint8_t rId)
 {
-    // IR Protocols can be programmed in here
-
-    // rmt_data_t *it = &items[0];
-    // // unsigned int value = 0;
-
-    // Serial.print("\n<< Received\n"); // LSB First
-
-    // for (size_t i = 0; i < len; i++)
-    // {
-    //     it = &items[i];
-    //     // Serial.printf("%0d\t (%d, %d), (%d, %d)\n", i, it->level0, it->duration0, it->level1, it->duration1);
-
-    //     if ((it->duration0 < RX_MAX_THRESHOLD) && (it->duration1 < RX_MAX_THRESHOLD) && (it->duration0 > RX_MIN_THRESHOLD) && (it->duration1 > RX_MIN_THRESHOLD))
-    //     {
-    //         Serial.printf("%0d*\t (%d, %d), (%d, %d)\n", i, it->level0, it->duration0, it->level1, it->duration1);
-    //     }
-    //     else
-    //     {
-    //         // For debug
-    //         Serial.printf("%0d \t (%d, %d), (%d, %d)\n", i, it->level0, it->duration0, it->level1, it->duration1);
-    //     }
-    // }
     unsigned int value = ir.parse(items, len, rId);
-    Serial.println(value);
+
+    if (value == -1)
+        Serial.println(">> error: Infared (Parse failed)\n");
+    else
+        Serial.println(value);
+
+    // IR Protocols can be programmed in here
+    // ...
 }
 
 void send(int value)
