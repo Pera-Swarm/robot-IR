@@ -55,6 +55,8 @@ void SW_Infared::setupRx()
             if (ENABLE_SERIAL_COMMUNICATION)
                 Serial.println(">> error: Infared (Rx module failed)\n");
         }
+
+        rmtSetFilter(this->rmt_rx[i], true, 10);
         this->realTickRx = rmtSetTick(this->rmt_rx[i], 5000); // x10 uS
     }
 
@@ -66,38 +68,49 @@ void SW_Infared::setupRx()
 
 unsigned int SW_Infared::parse(rmt_data_t *items, size_t len, uint8_t rId)
 {
+
+    rmt_data_t *it = &items[0];
+    unsigned int value = 0;
+
+    if (len > (IR_BIT_LEN + 2) * 2)
+    {
+        // something went wrong
+        return -1;
+    }
+
+    if (IR_DEBUG)
+        Serial.print("<< Received\n");
+
+    // trim the first and last framing bits
+    for (size_t i = 1; i < (len - 1); i++)
+    {
+        it = &items[i];
+
+        if ((it->duration0 < RX_MAX_THRESHOLD) && (it->duration1 < RX_MAX_THRESHOLD) && (it->duration0 > RX_MIN_THRESHOLD) && (it->duration1 > RX_MIN_THRESHOLD))
+        {
+            if (IR_DEBUG)
+                Serial.printf("%0d*\t (%d, %d), (%d, %d)\n", i, it->level0, it->duration0, it->level1, it->duration1);
+
+            bitWrite(value, i - 1, (it->duration0 > it->duration1));
+        }
+        else
+        {
+            if (IR_DEBUG)
+                Serial.printf("%0d \t (%d, %d), (%d, %d)\n", i, it->level0, it->duration0, it->level1, it->duration1);
+        }
+    }
+
+    if (IR_DEBUG)
+        Serial.printf("Received << \t %d (%d)\n", value, rId);
+
     if (len == IR_BIT_LEN + 2)
     {
-        rmt_data_t *it = &items[0];
-        unsigned int value = 0;
-
-        if (IR_DEBUG)
-            Serial.print("Receive\t< "); // LSB First
-
-        // trim the first and last framing bits
-        for (size_t i = 1; i < (len - 1); i++)
-        {
-            it = &items[i];
-
-            if ((it->duration0 < 200) && (it->duration1 < 200) && (it->duration0 > 20) && (it->duration1 > 20))
-            {
-                if (IR_DEBUG)
-                    Serial.printf("%d", (it->duration0 > it->duration1));
-                bitWrite(value, i - 1, (it->duration0 > it->duration1));
-            }
-            else
-            {
-                if (IR_DEBUG)
-                    Serial.printf("(%d,%d)", it->duration0, it->duration1);
-            }
-        }
-
-        if (IR_DEBUG)
-            Serial.printf("      << %ud (%d)\n", value, rId);
+        // Received value is in correct format
         return value;
     }
     else
     {
+        // Receiver with some error
         return 0;
     }
 }

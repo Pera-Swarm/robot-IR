@@ -27,6 +27,12 @@
 #define PULSE_FRAME_TICKS 10
 #define IR_DEBUG 1
 
+#define RMT_TX_MODE true
+#define RMT_RX_MODE false
+
+#define RX_MIN_THRESHOLD 1
+#define RX_MAX_THRESHOLD 200
+
 class SW_Infared
 {
 private:
