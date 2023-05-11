@@ -12,7 +12,8 @@ void beginInfared();
 void parseRmtData(rmt_data_t *items, size_t len, uint8_t rId);
 
 void send(int value);
-void sendTestSignal(unsigned int value);
+void sendTestSignal();
+void sendTestSignal(unsigned int len);
 
 // Interrupts for Remote Rx Event
 extern "C" void irReceive_0(uint32_t *data, size_t len);
