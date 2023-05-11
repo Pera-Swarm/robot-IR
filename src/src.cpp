@@ -22,10 +22,13 @@ void setup()
     delay(2000);
 }
 
+int i = 100;
+
 void loop()
 {
     // put your main code here, to run repeatedly:
-    sendTestSignal(3);
+    // sendTestSignal(5);
+    send(i++);
     delay(6000);
 }
 
